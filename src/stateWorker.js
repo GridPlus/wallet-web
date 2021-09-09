@@ -34,6 +34,11 @@ export default () => {
                 }
                 tick();
                 break;
+            case 'clearAddresses':
+                addresses = {};
+                console.log('set addresses to nil', addresses)
+                tick();
+                break;
             case 'stop':
                 clearInterval(interval);
                 break;

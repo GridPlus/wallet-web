@@ -8,7 +8,7 @@ const ReactCrypto = require('gridplus-react-crypto').default;
 const DEVICE_ADDR_SYNC_MS = 2000; // It takes roughly 2000 to sync a new address
 
 class SDKSession {
-  constructor(deviceID, stateUpdateHandler, name=null, opts={}) {
+  constructor(deviceID, stateUpdateHandler, name=null, settings={}) {
     this.client = null;
     this.crypto = null;
     this.name = name || 'GridPlus Web Wallet'; // app name
@@ -47,7 +47,8 @@ class SDKSession {
     this.page = 1; // (1-indexed)
 
     // Configurable settings
-    this.baseUrl = opts.customEndpoint ? opts.customEndpoint : constants.BASE_SIGNING_URL;
+    this.baseUrl = settings.customEndpoint ? settings.customEndpoint : constants.BASE_SIGNING_URL;
+    this.bitcoinPurpose = settings.bitcoinUseBech32 ? constants.BIP_PURPOSE_P2WPKH : constants.BIP_PURPOSE_P2SH_P2WPKH;
   
     // Go time
     this.getStorage();
@@ -351,13 +352,13 @@ class SDKSession {
         // already synced and this function will get called if we discover <20 unused addresses
         // (via `fetchDataHandler`)
         if (force !== true && nextIdx >= constants.BTC_MAIN_GAP_LIMIT) return cb(null);
-        opts.startPath = [ constants.BIP_PURPOSE_P2SH_P2WPKH, constants.BTC_COIN, harden(0), 0, nextIdx ];
+        opts.startPath = [ this.bitcoinPurpose, constants.BTC_COIN, harden(0), 0, nextIdx ];
         opts.n = nextIdx >= constants.BTC_MAIN_GAP_LIMIT ? 1 : constants.BTC_ADDR_BLOCK_LEN;
         break;
       case 'BTC_CHANGE':
         // Skip the initial sync if we have at least one change address (GAP_LIMIT=1)
         if (force !== true && nextIdx >= constants.BTC_CHANGE_GAP_LIMIT) return cb(null);
-        opts.startPath = [ constants.BIP_PURPOSE_P2SH_P2WPKH, constants.BTC_COIN, harden(0), 1, nextIdx ];
+        opts.startPath = [ this.bitcoinPurpose, constants.BTC_COIN, harden(0), 1, nextIdx ];
         opts.n = nextIdx >= constants.BTC_CHANGE_GAP_LIMIT ? 1 : constants.BTC_CHANGE_GAP_LIMIT;
         break;
       case 'ETH':

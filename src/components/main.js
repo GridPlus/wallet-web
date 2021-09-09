@@ -746,6 +746,7 @@ class Main extends React.Component {
       case 'menu-settings':
         return (
           <Settings
+            session={this.state.session}
             isMobile={() => this.isMobile()}
           />
         )

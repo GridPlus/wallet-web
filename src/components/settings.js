@@ -29,6 +29,16 @@ class Settings extends React.Component {
     this.setState({ settings })
   }
 
+  hasActiveWallet() {
+    // Make sure we have an active session with a device
+    if (!this.props.session) 
+      return false;
+    // Make sure we have an active wallet
+    if (!this.props.session.getActiveWallet())
+      return false
+    return true;
+  }
+
   submit() {
     // Save the settings to local storage
     const storage = JSON.parse(window.localStorage.getItem(constants.ROOT_STORE) || '{}');
@@ -53,6 +63,26 @@ class Settings extends React.Component {
     const settings = JSON.parse(JSON.stringify(this.state.settings));
     settings.customEndpoint = evt.target.value;
     this.setState({ settings });
+  }
+
+  updateBitcoinUseBech32(value) {
+    // Make sure we have an active session with a Lattice
+    if (!this.hasActiveWallet())
+      return;
+    const settings = JSON.parse(JSON.stringify(this.state.settings));
+    settings.bitcoinUseBech32 = value;
+    this.setState({ settings })
+
+    // Clear all addresses so we can re-sync with the new flag.
+    // I have chosen to wipe *all* addresses rather than picking over BTC only ones.
+    // This is just for simplicity. We only load one ETH address anyway.
+    // However, if more assets get supported we can re-evaluate this policy.
+    const deviceID = this.props.session.deviceID;
+    const walletUID = this.props.session.getActiveWallet().uid.toString('hex');
+    const walletData = this.props.session.storageSession.getWalletData(deviceID, walletUID);
+    console.log('walletData', walletData)
+    walletData.addresses = {};
+    this.props.session.storageSession.save(deviceID, walletUID, walletData);
   }
 
   removeKeyring(login) {
@@ -125,25 +155,47 @@ class Settings extends React.Component {
     )
   }
 
-  renderCard() {
+  renderBitcoinSettings() {
+    // We only want to allow this toggle if we have state from the device.
+    // This is because it will reset all BTC addresses.
+    if (!this.hasActiveWallet())
+      return;
+    let bitcoinUseBech32 = this.state.settings.bitcoinUseBech32;
+    if (bitcoinUseBech32 === undefined)
+      bitcoinUseBech32 = true;
     return (
-      <div>
+      <Card>
+        <h3>Bitcoin Settings:</h3>
+        <div> {
+          this.props.session ? (
+            <div>
+              <p><b>Use native segwit (bech32):</b></p>
+              <Switch checked={bitcoinUseBech32} onChange={this.updateBitcoinUseBech32.bind(this)}/>
+            </div>
+          ) : null}
+        </div>
+      </Card>
+    )
+  }
+
+  renderSettingsCard() {
+    return (
+      <Card title={'Settings'} bordered={true}>
         {this.renderKeyringsSetting()}
         {this.renderCustomEndpointSetting()}
+        {this.renderBitcoinSettings()}
         <br/>
         <Button type="primary" onClick={this.submit.bind(this)}>
           Update and Reload
         </Button>
-      </div>
+      </Card>
     )
   }
 
   render() {
     const content = (
       <center>
-        <Card title={'Settings'} bordered={true}>
-          {this.renderCard()}
-        </Card>
+        {this.renderSettingsCard()}
       </center>      
     )
     return (this.props.isMobile() || this.props.inModal) ? content : (

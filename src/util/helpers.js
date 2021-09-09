@@ -34,9 +34,9 @@ const constants = {
 
 constants.ERC20_TOKENS = constants.ENV === 'dev' ? require('./devTokens.json') : require('./prodTokens.json');
 constants.BIP44_PURPOSE = constants.HARDENED_OFFSET + 44;
-// NOTE: For v1, the Lattice only supports p2sh-p2wpkh addresses, which
-//       use the BIP49 purpose (49') in their derivation paths.
 constants.BIP_PURPOSE_P2SH_P2WPKH = constants.HARDENED_OFFSET + 49;
+constants.BIP_PURPOSE_P2WPKH = constants.HARDENED_OFFSET + 84;
+
 exports.constants = constants;
 
 //--------------------------------------------
@@ -404,6 +404,7 @@ exports.toHexStr = function(bn) {
     const base = s.length % 2 === 0 ? s : `0${s}`;
     return `0x${base}`; 
 }
+
 //--------------------------------------------
 // END OTHER HELPERS
 //--------------------------------------------
