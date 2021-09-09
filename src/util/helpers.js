@@ -293,7 +293,6 @@ exports.buildBtcTxReq = function(recipient, btcValue, utxos, addrs, changeAddrs,
         filteredUtxos.push(utxo);
       }
     })
-    console.log('utxos', utxos)
     const sortedUtxos = filteredUtxos.sort((a, b) => { return a.value-b.value });
     let sum = 0;
     let numInputs = 0;
@@ -309,7 +308,7 @@ exports.buildBtcTxReq = function(recipient, btcValue, utxos, addrs, changeAddrs,
     if ((bytesUsed * feeRate) + satValue > sum) {
         // There's a chance that we just eclipsed the number of inputs we could support.
         // Handle the edge case.
-        if (utxos.length <= numInputs)
+        if (sortedUtxos.length <= numInputs)
             return { error: 'Not enough balance to handle network fee. Please send a smaller value.'}
         numInputs += 1;
         bytesUsed += 180;
