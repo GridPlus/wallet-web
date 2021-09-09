@@ -252,18 +252,16 @@ exports.harden = function(x) {
 
 function getBtcVersion(addrs) {
     const addr = Array.isArray(addrs) ? addrs[0] : addrs;
-    switch (addr.slice(0, 1)) {
-        case '1':
-            return 'LEGACY';
-        case '3':
-            return 'SEGWIT';
-        case '2':
-            return 'SEGWIT_TESTNET';
-        case 'm':
-        case 'n':
-            return 'TESTNET';
-        default:
-            return null;
+    if (addr.slice(0, 2) === 'bc' || addr.slice(0, 1) === '3') {
+        return 'SEGWIT';
+    } else if (addr.slice(0, 2) === 'tb' || addr.slice(0, 1) === '2') {
+        return 'SEGWIT_TESTNET';
+    } else if (addr.slice(0, 1) === '1') {
+        return 'LEGACY';
+    } else if (addr.slice(0, 1) === 'm' || addr.slice(0, 1) === 'n') {
+        return 'TESTNET';
+    } else {
+        return null;
     }
 }
 exports.getBtcVersion = getBtcVersion;

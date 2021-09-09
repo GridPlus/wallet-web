@@ -482,7 +482,7 @@ class SDKSession {
   // Request the first BTC address so we can know what data to rehydrate
   loadBtcAddrType(cb) {
     const opts = {
-      startPath: [ constants.BIP_PURPOSE_P2SH_P2WPKH, constants.BTC_COIN, harden(0), 0, 0 ],
+      startPath: [ this.bitcoinPurpose, constants.BTC_COIN, harden(0), 0, 0 ],
       n: 1,
       skipCache: false,
     };
