@@ -1,4 +1,4 @@
-import { Buffer } from "buffer/";
+import { Buffer } from "buffer";
 import { validateBtcAddr } from "./helpers";
 
 export const allChecks = {

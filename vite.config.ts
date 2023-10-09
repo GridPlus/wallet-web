@@ -31,4 +31,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     outDir: "build",
   },
+  resolve: {
+    alias: {
+      "@": "/src",
+    },
+  },
 }));

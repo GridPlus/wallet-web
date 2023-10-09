@@ -65,7 +65,7 @@ export const UpdateAddressTagsModal = ({
     <>
       <Modal
         title="Update Address Tags"
-        visible={isModalVisible}
+        open={isModalVisible}
         maskClosable={false}
         onOk={form.submit}
         onCancel={handleCancel}

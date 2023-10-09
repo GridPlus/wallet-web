@@ -1,5 +1,5 @@
-import { ImportOutlined } from "@ant-design/icons";
-import { Button } from "antd";
+import { Button } from "@/components/ui/button";
+import { FileDown } from "lucide-react";
 import { useAddressTags } from "../hooks/useAddressTags";
 
 export const ImportAddressTagsButton = ({ showModal }) => {
@@ -7,11 +7,11 @@ export const ImportAddressTagsButton = ({ showModal }) => {
 
   return (
     <Button
-      type="default"
-      icon={<ImportOutlined />}
+      variant="outline"
       disabled={isLoadingAddressTags}
       onClick={showModal}
     >
+      <FileDown size={14} className="mr-2" />
       Import
     </Button>
   );

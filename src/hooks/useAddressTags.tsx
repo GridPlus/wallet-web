@@ -1,11 +1,15 @@
+import { ADDRESSES_PER_PAGE } from "@/util/constants";
+import {
+  addAddressTags as addAddressTagsToLattice,
+  fetchAddressTags as fetchAddressTagsFromLattice,
+  removeAddressTags as removeAddressTagsFromLattice,
+} from "gridplus-sdk";
 import _ from "lodash";
 import isEmpty from "lodash/isEmpty";
 import { useCallback, useContext } from "react";
 import { AppContext } from "../store/AppContext";
 import { Address, AddressTag } from "../types/records";
-import { constants } from "../util/helpers";
 import { sendErrorNotification } from "../util/sendErrorNotification";
-const { ADDRESSES_PER_PAGE, ADDRESS_RECORD_TYPE } = constants;
 
 /**
  * The `useAddressTags` hook is used to manage the external calls for fetching, adding, and removing
@@ -13,7 +17,6 @@ const { ADDRESSES_PER_PAGE, ADDRESS_RECORD_TYPE } = constants;
  */
 export const useAddressTags = () => {
   const {
-    session,
     isLoadingAddressTags,
     setIsLoadingAddressTags,
     addressTags,
@@ -23,24 +26,19 @@ export const useAddressTags = () => {
   } = useContext(AppContext);
 
   /**
-   * Fetches the installed addresses from the user's Lattice.
+   * Fetches the installed addressTags from the user's Lattice.
    */
   const fetchAddressTags = useCallback(
     async (fetched = 0) => {
+      console.log("fetching address tags");
       setIsLoadingAddressTags(true);
 
-      return session.client
-        .getKvRecords({
-          start: fetched,
-          n: ADDRESSES_PER_PAGE,
-        })
+      return fetchAddressTagsFromLattice({
+        start: fetched,
+        n: ADDRESSES_PER_PAGE,
+      })
         .then(async (res) => {
-          addAddressTagsToState(res.records);
-          const totalFetched = res.fetched + fetched;
-          const remainingToFetch = res.total - totalFetched;
-          if (remainingToFetch > 0) {
-            await fetchAddressTags(fetched + res.fetched);
-          }
+          addAddressTagsToState(res);
         })
         .catch((err) => {
           sendErrorNotification({
@@ -52,19 +50,18 @@ export const useAddressTags = () => {
           setIsLoadingAddressTags(false);
         });
     },
-    [addAddressTagsToState, session.client, setIsLoadingAddressTags]
+    [addAddressTagsToState, setIsLoadingAddressTags]
   );
 
   /**
-   * Removes installed addresses from the user's Lattice.
+   * Removes installed addressTags from the user's Lattice.
    */
   const removeAddressTags = (selectedAddressTags: AddressTag[]) => {
-    const ids = selectedAddressTags.map((r) => parseInt(r.id));
-    if (isEmpty(ids)) return;
+    console.log("removing address tags");
+    if (isEmpty(selectedAddressTags)) return;
     setIsLoadingAddressTags(true);
 
-    return session.client
-      .removeKvRecords({ ids })
+    return removeAddressTagsFromLattice(selectedAddressTags)
       .then(() => {
         removeAddressTagsFromState(selectedAddressTags);
       })
@@ -80,17 +77,18 @@ export const useAddressTags = () => {
   };
 
   /**
-   * Adds new addresses to the user's Lattice.
+   * Adds new addressTags to the user's Lattice.
    */
-  const addAddressTags = async (addressesToAdd: Address[]) => {
+  const addAddressTags = async (addressTagsToAdd: Address[]) => {
+    console.log("adding address tags");
     setIsLoadingAddressTags(true);
 
     /**
-     * Transform `addressesToAdd` data into chunks of size `ADDRESSES_PER_PAGE` with shape `{ key:
+     * Transform `addressTagsToAdd` data into chunks of size `ADDRESSES_PER_PAGE` with shape `{ key:
      * val }` for sending to Lattice because the Lattice can only handle a particular amount of
-     * addresses at a time.
+     * addressTags at a time.
      */
-    const recordsList = _.chain(addressesToAdd)
+    const recordsList = _.chain(addressTagsToAdd)
       .chunk(ADDRESSES_PER_PAGE)
       .map((addrChunk) =>
         _.chain(addrChunk).keyBy("key").mapValues("val").value()
@@ -100,16 +98,12 @@ export const useAddressTags = () => {
     return new Promise<Buffer[]>(async (resolve, reject) => {
       let results = [];
       for await (const records of recordsList) {
-        const result = await session.client
-          .addKvRecords({
-            caseSensitive: false,
-            type: ADDRESS_RECORD_TYPE,
-            records,
-          })
-          .catch((err) => {
+        const result = await addAddressTagsToLattice(recordsList).catch(
+          (err) => {
             sendErrorNotification(err);
             reject(err);
-          });
+          }
+        );
         if (result) {
           results.push(result);
         }

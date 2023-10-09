@@ -1,4 +1,4 @@
-import SDKSession from "../sdk/sdkSession";
+// import SDKSession from "../sdk/sdkSession";
 import { AddressTag } from "../types/records";
 import { ContractRecord } from "./../types/contracts";
 
@@ -72,7 +72,7 @@ export const getMockSession = (
     overrides: {} as any,
     clientOverrides: {} as any,
   }
-): SDKSession => ({
+) => ({
   client: {
     // AddressTags
     addKvRecords: jest.fn(async (records) => records),

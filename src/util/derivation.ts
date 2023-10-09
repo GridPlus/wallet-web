@@ -10,7 +10,7 @@ export const DERIVATION_TYPE = {
   SOLANA: "Solana",
 };
 
-type DerivationType = typeof DERIVATION_TYPE[keyof typeof DERIVATION_TYPE];
+type DerivationType = (typeof DERIVATION_TYPE)[keyof typeof DERIVATION_TYPE];
 
 /**
  * Takes a string and DerivationType and returns a formatted string for display.

@@ -1,6 +1,5 @@
+import { CONTRACT_NETWORKS, DEFAULT_CONTRACT_NETWORK } from "@/util/constants";
 import { Select } from "antd";
-import React from "react";
-import { constants } from "../util/helpers";
 const { Option } = Select;
 
 export const SelectNetwork = ({ setNetwork }) => {
@@ -8,7 +7,7 @@ export const SelectNetwork = ({ setNetwork }) => {
     <Select
       style={{ minWidth: "150px", marginRight: "10px" }}
       showSearch
-      defaultValue={constants.DEFAULT_CONTRACT_NETWORK}
+      defaultValue={DEFAULT_CONTRACT_NETWORK}
       optionFilterProp="children"
       onChange={setNetwork}
       filterOption={(input, option) =>
@@ -16,7 +15,7 @@ export const SelectNetwork = ({ setNetwork }) => {
         option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
       }
     >
-      {Object.entries(constants.CONTRACT_NETWORKS).map(([key, value]) => (
+      {Object.entries(CONTRACT_NETWORKS).map(([key, value]) => (
         <Option key={key} value={key}>
           {value.label}
         </Option>

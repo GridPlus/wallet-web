@@ -1,0 +1,12 @@
+import { ReactCrypto } from "gridplus-react-crypto";
+
+export const genPrivKey = (deviceId, password, name) => {
+  const key = Buffer.concat([
+    Buffer.from(password),
+    Buffer.from(deviceId),
+    Buffer.from(name),
+  ]);
+  // Create a new instance of ReactCrypto using the key as entropy
+  let crypto = new ReactCrypto(key);
+  return crypto.createHash("sha256").update(key).digest();
+};

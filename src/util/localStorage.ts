@@ -1,4 +1,10 @@
 import omit from "lodash/omit";
+import { db } from "./btc/db";
+import {
+  BTC_PURPOSE_SEGWIT,
+  BTC_PURPOSE_WRAPPED_SEGWIT,
+  BTC_PURPOSE_LEGACY,
+} from "./constants";
 
 const LOGIN_ID_STORAGE_KEY = "gridplus_web_wallet_id";
 const LOGIN_PASSWORD_STORAGE_KEY = "gridplus_web_wallet_password";
@@ -138,6 +144,80 @@ const removeContracts = () => removeDeviceIndexedItem(CONTRACTS_STORAGE_KEY);
 const getContractPacks = () => getItem(CONTRACT_PACKS_STORAGE_KEY) ?? [];
 const setContractPacks = (value) => setItem(CONTRACT_PACKS_STORAGE_KEY, value);
 const removeContractPacks = () => removeItem(CONTRACT_PACKS_STORAGE_KEY);
+
+// #endregion
+
+// #region -- BTC
+export const saveSegwitAddresses = (addresses: string[]) => {
+  localStorage.setItem("segwitAddresses", JSON.stringify(addresses));
+};
+export const saveWrappedSegwitAddresses = (addresses: string[]) => {
+  localStorage.setItem("wrappedSegwitAddresses", JSON.stringify(addresses));
+};
+
+export const saveLegacyAddresses = (addresses: string[]) => {
+  localStorage.setItem("legacyAddresses", JSON.stringify(addresses));
+};
+
+export const getSegwitAddressesFromStorage = () => {
+  const addrStrings = localStorage.getItem("segwitAddresses");
+  return addrStrings ? JSON.parse(addrStrings) : [];
+};
+
+export const getWrappedSegwitAddressesFromStorage = () => {
+  const addrStrings = localStorage.getItem("wrappedSegwitAddresses");
+  return addrStrings ? JSON.parse(addrStrings) : [];
+};
+
+export const getLegacyAddressesFromStorage = () => {
+  const addrStrings = localStorage.getItem("legacyAddresses");
+  return addrStrings ? JSON.parse(addrStrings) : [];
+};
+
+/**
+ * Fetches SegWit addresses from the database.
+ * @param deviceId The device identifier.
+ * @param walletUid The wallet identifier.
+ * @returns A promise that resolves to an array of SegWit addresses.
+ */
+export const getSegwitAddressesFromDatabase = async (
+  deviceId: string,
+  walletUid: string
+) => {
+  return db.addresses
+    .where({ deviceId, walletUid, btcPurpose: BTC_PURPOSE_SEGWIT })
+    .toArray();
+};
+
+/**
+ * Fetches Wrapped SegWit addresses from the database.
+ * @param deviceId The device identifier.
+ * @param walletUid The wallet identifier.
+ * @returns A promise that resolves to an array of Wrapped SegWit addresses.
+ */
+export const getWrappedSegwitAddressesFromDatabase = async (
+  deviceId: string,
+  walletUid: string
+) => {
+  return db.addresses
+    .where({ deviceId, walletUid, btcPurpose: BTC_PURPOSE_WRAPPED_SEGWIT })
+    .toArray();
+};
+
+/**
+ * Fetches Legacy addresses from the database.
+ * @param deviceId The device identifier.
+ * @param walletUid The wallet identifier.
+ * @returns A promise that resolves to an array of Legacy addresses.
+ */
+export const getLegacyAddressesFromDatabase = async (
+  deviceId: string,
+  walletUid: string
+) => {
+  return db.addresses
+    .where({ deviceId, walletUid, btcPurpose: BTC_PURPOSE_LEGACY })
+    .toArray();
+};
 
 // #endregion
 

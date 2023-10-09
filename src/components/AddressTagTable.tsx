@@ -4,16 +4,16 @@ import fuzzysort from "fuzzysort";
 import intersectionBy from "lodash/intersectionBy";
 import React, { useCallback, useEffect, useState } from "react";
 import { useAddressTags } from "../hooks/useAddressTags";
-import { constants } from "../util/helpers";
 import { abbreviateHash } from "../util/addresses";
-const { ADDRESSES_PER_PAGE } = constants;
+import { ADDRESSES_PER_PAGE } from "@/util/constants";
 
 /**
  * `AddressTable` is a table of key-value pairs of names and hashes with some management features to
  * make it easier to manage a large amount of addresses.
  */
 export const AddressTagsTable = () => {
-  const { isLoadingAddressTags, addressTags, removeAddressTags } = useAddressTags();
+  const { isLoadingAddressTags, addressTags, removeAddressTags } =
+    useAddressTags();
   const [input, setInput] = useState("");
   const [filteredAddresses, setFilteredAddresses] = useState([]);
   const [selectedAddresses, setSelectedAddresses] = useState([]);

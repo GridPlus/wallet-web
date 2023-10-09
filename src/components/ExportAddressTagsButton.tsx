@@ -1,5 +1,5 @@
-import { ExportOutlined } from "@ant-design/icons";
-import { Button } from "antd";
+import { Button } from "@/components/ui/button";
+import { FileUp } from "lucide-react";
 import { useAddressTags } from "../hooks/useAddressTags";
 import { addressTagsToCsvString } from "../util/csv";
 
@@ -19,11 +19,11 @@ export const ExportAddressTagsButton = () => {
 
   return (
     <Button
-      type="default"
-      icon={<ExportOutlined />}
+      variant="outline"
       disabled={isLoadingAddressTags}
       onClick={handleOnClick}
     >
+      <FileUp size={14} className="mr-2" />
       Export
     </Button>
   );

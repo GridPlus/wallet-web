@@ -44,7 +44,7 @@ export const ImportAddressTagsModal = ({
   return (
     <Modal
       title="Add Address Tags"
-      visible={isModalVisible}
+      open={isModalVisible}
       maskClosable={false}
       onOk={handleOnSubmit}
       onCancel={handleCancel}
