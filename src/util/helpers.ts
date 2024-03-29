@@ -1,6 +1,7 @@
 import localStorage from "./localStorage";
 import { bech32 } from "bech32";
 import bs58check from "bs58check";
+import { Buffer } from "buffer";
 
 const HARDENED_OFFSET = 0x80000000;
 export const constants = {
