@@ -6,6 +6,7 @@ import { constants } from "../util/helpers";
 import { NameEditor } from "./NameEditor";
 import { LoginData } from "../types/authentication";
 import { AppContext } from "../store/AppContext";
+import localStorage from "../util/localStorage";
 
 type ConnectProps = {
   submitCb: (data: LoginData, showLoading: boolean) => void;
@@ -48,6 +49,16 @@ class Connect extends React.Component<ConnectProps, ConnectState> {
       this.input.focus();
     }
     this.setState({ isLoading: false });
+
+    const keyringData = this.getKeyringDataFromURL();
+    if (keyringData) {
+      this.submit(keyringData.deviceID, keyringData.password);
+    } else {
+      const { deviceID, password } = localStorage.getLogin();
+      if (deviceID && password) {
+        this.submit(deviceID, password);
+      }
+    }
   }
 
   componentDidUpdate() {
@@ -63,13 +74,7 @@ class Connect extends React.Component<ConnectProps, ConnectState> {
     this.setState({ isLoading: false });
   }
 
-  handleSubmit() {
-    const deviceID = (
-      document.getElementById("deviceIdInput") as HTMLInputElement
-    ).value;
-    const password = (
-      document.getElementById("passwordInput") as HTMLInputElement
-    ).value;
+  submit(deviceID: string, password: string) {
     if (password.length < 8) {
       this.setState({
         isLoading: true,
@@ -83,10 +88,36 @@ class Connect extends React.Component<ConnectProps, ConnectState> {
     }
   }
 
+  handleSubmit() {
+    const deviceID = (
+      document.getElementById("deviceIdInput") as HTMLInputElement
+    ).value;
+    const password = (
+      document.getElementById("passwordInput") as HTMLInputElement
+    ).value;
+    this.submit(deviceID, password);
+  }
+
   handleCancel() {
     this.props.cancelConnect();
     this.setState({ isLoading: false, errMsg: null });
   }
+
+  getKeyringDataFromURL = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const keyringName = urlParams.get("keyring");
+
+    if (keyringName) {
+      const keyringData = localStorage.getKeyringItem(keyringName);
+      const { deviceID, password } = keyringData;
+
+      if (deviceID && password) {
+        return { deviceID, password };
+      }
+    }
+
+    return null;
+  };
 
   renderConnectButton() {
     if (
