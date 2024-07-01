@@ -303,8 +303,7 @@ class Connect extends React.Component<ConnectProps, ConnectState> {
         {this.renderModal()}
         <Col span={spanWidth} offset={spanOffset}>
           <center>
-            {this.renderMsg()}
-            <Card bordered={true}>
+            <Card bordered={true} style={{ marginTop: "30px" }}>
               <a
                 className="lattice-a"
                 href="https://gridplus.io/lattice"
