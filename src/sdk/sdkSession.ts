@@ -272,8 +272,7 @@ class SDKSession {
             );
             return this._tryConnect(deviceID, pw, cb, true);
           } else {
-            console.error("Failed to connect via cloud routing.");
-            return cb ? cb(err) : err;
+            throw err;
           }
         } else if (_triedLocal === false) {
           console.log("Successfully connected to Lattice over LAN.");

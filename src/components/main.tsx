@@ -146,21 +146,12 @@ class Main extends React.Component<any, MainState> {
       this.setState({ keyringName }, () => {
         // Check if this keyring has already logged in. This login should expire after a period of time.
         const prevKeyringLogin = localStorage.getKeyringItem(keyringName);
-        const keyringTimeoutBoundary =
-          new Date().getTime() - constants.KEYRING_LOGOUT_MS;
-        if (
-          !forceLogin &&
-          prevKeyringLogin &&
-          prevKeyringLogin.lastLogin > keyringTimeoutBoundary
-        ) {
+        if (!forceLogin && prevKeyringLogin) {
           this.connect(
             prevKeyringLogin.deviceID,
             prevKeyringLogin.password,
             () => this.connectSession(prevKeyringLogin)
           );
-        } else {
-          // If the login has expired, clear it now.
-          localStorage.removeKeyringItem(keyringName);
         }
       });
     } else if (hwCheck) {
@@ -367,6 +358,7 @@ class Main extends React.Component<any, MainState> {
           }
         })
         .catch((err) => {
+          localStorage.removeKeyringItem(this.state.keyringName);
           this.setError({
             msg: err.message,
             cb: () => {
@@ -692,10 +684,7 @@ class Main extends React.Component<any, MainState> {
 
   renderErrorHeader() {
     if (this.state.error.msg) {
-      const err = (
-        <Error msg={this.state.error.msg} retryCb={this.state.error.cb} />
-      );
-      return <PageContent content={err} />;
+      return <Error msg={this.state.error.msg} retryCb={this.state.error.cb} />;
     } else {
       return;
     }

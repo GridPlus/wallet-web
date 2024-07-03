@@ -27,7 +27,7 @@ class Error extends React.Component<any, any> {
   render() {
     return (
       <center>
-        <Card title="Error" bordered={true}>
+        <Card title="Error" bordered={true} style={{ maxWidth: "500px" }}>
           <p>{this.props.msg}</p>
           {this.props.retryCb ? (
             <Button
