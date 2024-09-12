@@ -334,6 +334,7 @@ class Connect extends React.Component<ConnectProps, ConnectState> {
                   />
                 </div>
               ) : null}
+              {this.renderMsg()}
               {tooLong ? (
                 <p>
                   <b>Error: App name must be more than 4 characters.</b>
