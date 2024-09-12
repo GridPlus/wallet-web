@@ -37,7 +37,7 @@
     "elliptic": "^6.5.4",
     "fuzzysort": "^2.0.1",
     "gridplus-react-crypto": "0.0.5",
-    "gridplus-sdk": "^2.5.2",
+    "gridplus-sdk": "^2.6.0",
     "gulp": "^4.0.2",
     "lucide-react": "^0.284.0",
     "nanoid": "^4.0.0",
