@@ -7,7 +7,6 @@ import { useBtc } from "@/hooks/useBtc";
 import { useLattice } from "@/hooks/useLattice";
 import { useSettings } from "@/hooks/useSettings";
 import { initializeBtcWallet } from "@/util/btc/btc";
-import { db } from "@/util/btc/db";
 import { SATS_TO_BTC } from "@/util/constants";
 import { formatRelativeTime } from "@/util/datetime";
 import { useMemo, useState } from "react";
@@ -67,22 +66,6 @@ export const WalletPage = () => {
               Reload
             </Button>
           </div>
-          <Button
-            onClick={async () => {
-              const val = await db.addresses
-                .where({ walletUid: activeWalletUid, deviceId, btcPurpose })
-                .and(
-                  (address) => address.change === true && address.used === false
-                )
-                .sortBy("index")
-                .then((addresses) =>
-                  addresses.length > 0 ? addresses[0] : {}
-                );
-              console.log(val);
-            }}
-          >
-            GET ADDR
-          </Button>
         </div>
       </div>
       <div className="flex flex-col gap-5">

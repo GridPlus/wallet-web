@@ -28,13 +28,14 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { setup } from "gridplus-sdk";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { NameEditor } from "../components/NameEditor";
 import { useLattice } from "../hooks/useLattice";
 import { useUrlParams } from "../hooks/useUrlParams";
+import { getStoredClient, setStoredClient } from "../store/persistanceStore";
 
 const formSchema = z.object({
   deviceId: z.string().min(6).max(50),
@@ -46,14 +47,6 @@ export const ConnectPage = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const { toast } = useToast();
 
-  const getStoredClient = () =>
-    window.localStorage.getItem("storedClient") || "";
-
-  const setStoredClient = (storedClient: string | null) => {
-    if (!storedClient) return;
-    window.localStorage.setItem("storedClient", storedClient);
-  };
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,16 +54,6 @@ export const ConnectPage = () => {
       password: "",
     },
   });
-
-  useEffect(() => {
-    if (getStoredClient()) {
-      setup({ getStoredClient, setStoredClient }).then((isPaired) => {
-        if (isPaired) {
-          window.location.href = "/manage";
-        }
-      });
-    }
-  }, []);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsConnecting(true);

@@ -1,11 +1,11 @@
+import { BTC_PURPOSE_SEGWIT } from "@/util/constants";
+import { isEmptyUInt8Array } from "@/util/wallets";
 import { fetchActiveWallets, getClient, setup } from "gridplus-sdk";
 import { ReactNode, createContext, useEffect, useMemo, useState } from "react";
 import { useRecords } from "../hooks/useRecords";
 import store from "../store/persistanceStore";
 import localStorage from "../util/localStorage";
 import { getStoredClient, setStoredClient } from "./persistanceStore";
-import { isEmptyUInt8Array } from "@/util/wallets";
-import { BTC_PURPOSE_SEGWIT } from "@/util/constants";
 
 /**
  * A React Hook that allows us to pass data down the component tree without having to pass
@@ -102,6 +102,7 @@ export const AppContextProvider = ({
         });
     } else {
       setIsLoadingClient(false);
+      setIsLoadingActiveWallets(false);
     }
   }, []);
 

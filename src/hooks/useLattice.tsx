@@ -4,15 +4,11 @@ import {
   LOGIN_PARAM,
   PAGE_KEYS,
 } from "@/util/constants";
-import { fetchActiveWallets, getClient, setup } from "gridplus-sdk";
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { fetchActiveWallets, getClient } from "gridplus-sdk";
+import { useCallback, useContext, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../store/AppContext";
-import store, {
-  getStoredClient,
-  removeStoredClient,
-  setStoredClient,
-} from "../store/persistanceStore";
+import store, { removeStoredClient } from "../store/persistanceStore";
 import { useUrlParams } from "./useUrlParams";
 
 export const useLattice = () => {
@@ -21,18 +17,14 @@ export const useLattice = () => {
     integrationName,
     setIntegrationName,
     isLoadingClient,
-    setIsLoadingClient,
-    isClientReady,
     activeWallets,
     activeWalletUid,
-    setActiveWallets,
     updateActiveWallets,
     activeWallet,
     setActiveWallet,
     isLoadingActiveWallets,
     setIsLoadingActiveWallets,
   } = useContext(AppContext);
-  const location = useLocation();
   const { keyring, forceLogin, isLoggedIn, hwCheck } = useUrlParams();
 
   const wasOpenedByKeyring = !!keyring; // Was the app opened with a keyring in the url parameters
@@ -66,6 +58,7 @@ export const useLattice = () => {
     try {
       return getClient().isPaired || false;
     } catch (e) {
+      console.log(e);
       return false;
     }
   };
@@ -76,24 +69,6 @@ export const useLattice = () => {
 
   const isPaired = () => {
     return getClient()?.isPaired || false;
-  };
-
-  const connect = async (deviceId: string, password: string) => {
-    console.log("connect", deviceId, password);
-    const name = "Lattice ManagerZZZ";
-    const isPaired = await setup({
-      deviceId,
-      password,
-      name,
-      getStoredClient,
-      setStoredClient,
-    });
-    if (isPaired) {
-      await updateActiveWallets();
-      navigate(PAGE_KEYS.MANAGER);
-    } else {
-      navigate(PAGE_KEYS.PAIR);
-    }
   };
 
   useEffect(() => {
@@ -157,7 +132,6 @@ export const useLattice = () => {
   return {
     client: getClient(),
     deviceId,
-    connect,
     activeWallets,
     updateActiveWallets,
     activeWallet,
