@@ -1,7 +1,15 @@
-import React, { createContext, ReactNode, useEffect, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { useRecords } from "../hooks/useRecords";
 import SDKSession from "../sdk/sdkSession";
 import localStorage from "../util/localStorage";
+import { setup } from "gridplus-sdk";
 
 /**
  * A React Hook that allows us to pass data down the component tree without having to pass
@@ -17,7 +25,8 @@ export const AppContextProvider = ({
   overrides?: { [key: string]: any };
 }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 500);
-  const [session, setSession] = useState<SDKSession>(null);
+  const [sessionState, setSessionState] = useState<SDKSession | null>(null);
+  const sessionRef = useRef<SDKSession | null>(null);
 
   const [isLoadingAddressTags, setIsLoadingAddressTags] = useState(false);
   const [
@@ -27,10 +36,26 @@ export const AppContextProvider = ({
     resetAddressTagsInState,
   ] = useRecords(localStorage.getAddresses() ?? []);
 
+  const updateSession = useCallback((newSession: SDKSession | null) => {
+    if (sessionRef.current) {
+      sessionRef.current.removeAllListeners();
+    }
+    sessionRef.current = newSession;
+    if (newSession) {
+      newSession.on("clientUpdated", (client) => {
+        console.log("Client updated:", client);
+      });
+      newSession.on("clientAction", ({ method, args }) => {
+        console.log(`Client action performed: ${method}`, args);
+      });
+    }
+    setSessionState(newSession);
+  }, []);
+
   const defaultContext = {
     isMobile,
-    session,
-    setSession,
+    session: sessionState,
+    setSession: updateSession,
     isLoadingAddressTags,
     setIsLoadingAddressTags,
     addressTags,
@@ -39,23 +64,25 @@ export const AppContextProvider = ({
     resetAddressTagsInState,
   };
 
-  /**
-   * Whenever `addresses` data changes, it is persisted to `localStorage`
-   */
+  useEffect(() => {
+    if (sessionRef.current) {
+      console.log("Session updated:", sessionRef.current);
+    }
+  }, [sessionState]);
+
   useEffect(() => {
     localStorage.setAddresses(addressTags);
   }, [addressTags]);
 
-  /**
-   * Sets `isMobile` when the window resizes.
-   * */
   useEffect(() => {
-    window.addEventListener("resize", () => {
+    const handleResize = () => {
       const windowIsMobileWidth = window.innerWidth < 500;
-      if (windowIsMobileWidth && !isMobile) setIsMobile(true);
-      if (!windowIsMobileWidth && isMobile) setIsMobile(false);
-    });
-  }, [isMobile]);
+      setIsMobile(windowIsMobileWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <AppContext.Provider value={{ ...defaultContext, ...overrides }}>

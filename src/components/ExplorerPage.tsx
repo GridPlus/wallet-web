@@ -1,21 +1,12 @@
 import { LoadingOutlined } from "@ant-design/icons";
-import {
-  Button,
-  Card,
-  Checkbox,
-  InputNumber,
-  Select,
-  Table,
-  Tooltip,
-} from "antd";
-import { useContext, useEffect, useState } from "react";
+import { Button, Card, Checkbox, Input, Select, Table, Tooltip } from "antd";
+import { fetchAddressesByDerivationPath } from "gridplus-sdk";
+import { useEffect, useState } from "react";
 import { useAddressTags } from "../hooks/useAddressTags";
-import { AppContext } from "../store/AppContext";
 import { abbreviateHash } from "../util/addresses";
 import {
   DERIVATION_TYPE,
   getDisplayStringForDerivationType,
-  getFlagForDerivationType,
 } from "../util/derivation";
 import { constants } from "../util/helpers";
 import { sendErrorNotification } from "../util/sendErrorNotification";
@@ -28,21 +19,20 @@ const { Option } = Select;
 
 const ExplorerPage = () => {
   const { addressTags } = useAddressTags();
-  const { session } = useContext(AppContext);
   const [addresses, setAddresses] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddAddressesModalVisible, setIsAddAddressesModalVisible] =
     useState(false);
   // m / purpose' / coin_type' / account' / change / index
-  const [purpose, setPurpose] = useState(44);
+  const [purpose, setPurpose] = useState<number | string>(44);
   const [isPurposeHardened, setIsPurposeHardened] = useState(true);
-  const [coinType, setCoinType] = useState(60);
+  const [coinType, setCoinType] = useState<number | string>(60);
   const [isCoinTypeHardened, setIsCoinTypeHardened] = useState(true);
-  const [account, setAccount] = useState(0);
+  const [account, setAccount] = useState<number | string>(0);
   const [isAccountHardened, setIsAccountHardened] = useState(true);
-  const [change, setChange] = useState(0);
+  const [change, setChange] = useState<number | string>(0);
   const [isChangeHardened, setIsChangeHardened] = useState(false);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState<number | string>(0);
   const [isIndexHardened, setIsIndexHardened] = useState(false);
   const [selectedDerivationType, setSelectedDerivationType] = useState(
     DERIVATION_TYPE.ETHEREUM
@@ -59,31 +49,31 @@ const ExplorerPage = () => {
 
   const getPath = () => {
     const HARDENED_OFFSET = 0x80000000;
-    const purposePath = isPurposeHardened ? HARDENED_OFFSET + purpose : purpose;
-    const coinTypePath = isCoinTypeHardened
-      ? HARDENED_OFFSET + coinType
-      : coinType;
-    const accountPath = isAccountHardened ? HARDENED_OFFSET + account : account;
-    const changePath = isChangeHardened ? HARDENED_OFFSET + change : change;
-    const indexPath = isIndexHardened ? HARDENED_OFFSET + index : index;
-    const path = [
-      purposePath,
-      coinTypePath,
-      accountPath,
-      changePath,
-      indexPath,
-    ].filter((x) => x !== null);
-    return path;
+    const segments = [
+      { value: purpose, isHardened: isPurposeHardened },
+      { value: coinType, isHardened: isCoinTypeHardened },
+      { value: account, isHardened: isAccountHardened },
+      { value: change, isHardened: isChangeHardened },
+      { value: index, isHardened: isIndexHardened },
+    ];
+
+    return segments
+      .map(({ value, isHardened }) => {
+        if (value === "X") return "X";
+        const numValue =
+          typeof value === "number" ? value : parseInt(value as string, 10);
+        return isHardened
+          ? (HARDENED_OFFSET + numValue).toString()
+          : numValue.toString();
+      })
+      .filter((x) => Boolean(x) && !isNaN(x))
+      .join("/");
   };
 
   const getAddrs = () => {
     setIsLoading(true);
-    session.client
-      .getAddresses({
-        startPath: getPath(),
-        n: ADDRESSES_PER_PAGE,
-        flag: getFlagForDerivationType(selectedDerivationType),
-      })
+    const pathString = getPath();
+    fetchAddressesByDerivationPath(pathString, { n: ADDRESSES_PER_PAGE })
       .then((addrs) => {
         setAddresses(
           addrs.map((addr) => ({
@@ -126,7 +116,6 @@ const ExplorerPage = () => {
 
   useEffect(() => {
     getAddrs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDerivationType]);
 
   const onSelect = (option) => {
@@ -187,14 +176,29 @@ const ExplorerPage = () => {
       setIsPurposeHardened(true);
       setCoinType(501);
       setIsCoinTypeHardened(true);
-      setAccount(0);
+      setAccount("X");
       setIsAccountHardened(true);
-      setChange(null);
-      setIsChangeHardened(false);
+      setChange(0);
+      setIsChangeHardened(true);
       setIndex(null);
       setIsIndexHardened(false);
       setSelectedDerivationType(option);
     }
+  };
+
+  const handleInputChange = (
+    value: number | string,
+    setter: React.Dispatch<React.SetStateAction<number | string>>
+  ) => {
+    if (value === "X") {
+      // Clear other "X" values
+      if (purpose === "X") setPurpose(44);
+      if (coinType === "X") setCoinType(60);
+      if (account === "X") setAccount(0);
+      if (change === "X") setChange(0);
+      if (index === "X") setIndex(0);
+    }
+    setter(value);
   };
 
   return (
@@ -232,91 +236,83 @@ const ExplorerPage = () => {
               flexWrap: "wrap",
             }}
           >
-            <InputNumber
+            <Input
               disabled={isLoading}
-              controls={true}
               addonBefore={
                 <Tooltip title="Harden">
                   <Checkbox
                     disabled={isLoading}
-                    defaultChecked={true}
+                    checked={isPurposeHardened}
                     onChange={(e) => onCheck(e, setIsPurposeHardened)}
                   />
                 </Tooltip>
               }
               addonAfter={`${isPurposeHardened ? "'" : ""}`}
-              onChange={(e) => setPurpose(e)}
-              defaultValue={purpose}
+              onChange={(e) => handleInputChange(e.target.value, setPurpose)}
               value={purpose}
               style={{ width: "125px" }}
             />
-            <InputNumber
+            <Input
               disabled={isLoading}
-              controls={true}
               addonBefore={
                 <Tooltip title="Harden">
                   <Checkbox
                     disabled={isLoading}
-                    defaultChecked={true}
+                    checked={isCoinTypeHardened}
                     onChange={(e) => onCheck(e, setIsCoinTypeHardened)}
                   />
                 </Tooltip>
               }
-              onChange={(e) => setCoinType(e)}
               addonAfter={`${isCoinTypeHardened ? "'" : ""}`}
-              defaultValue={coinType}
+              onChange={(e) => handleInputChange(e.target.value, setCoinType)}
               value={coinType}
               style={{ width: "125px" }}
             />
-            <InputNumber
+            <Input
               disabled={isLoading}
-              controls={true}
               addonBefore={
                 <Tooltip title="Harden">
                   <Checkbox
                     disabled={isLoading}
-                    defaultChecked={true}
+                    checked={isAccountHardened}
                     onChange={(e) => onCheck(e, setIsAccountHardened)}
                   />
                 </Tooltip>
               }
-              onChange={(e) => setAccount(e)}
               addonAfter={`${isAccountHardened ? "'" : ""}`}
-              defaultValue={account}
+              onChange={(e) => handleInputChange(e.target.value, setAccount)}
               value={account}
               style={{ width: "125px" }}
             />
-            <InputNumber
+            <Input
               disabled={isLoading}
-              controls={true}
               addonBefore={
                 <Tooltip title="Harden">
                   <Checkbox
                     disabled={isLoading}
+                    checked={isChangeHardened}
                     onChange={(e) => onCheck(e, setIsChangeHardened)}
                   />
                 </Tooltip>
               }
-              onChange={(e) => setChange(e)}
               addonAfter={`${isChangeHardened ? "'" : ""}`}
-              defaultValue={change}
+              onChange={(e) => handleInputChange(e.target.value, setChange)}
               value={change}
               style={{ width: "125px" }}
             />
-            <InputNumber
+            <Input
               disabled={isLoading}
-              controls={true}
               addonBefore={
                 <Tooltip title="Harden">
                   <Checkbox
                     disabled={isLoading}
+                    checked={isIndexHardened}
                     onChange={(e) => onCheck(e, setIsIndexHardened)}
                   />
                 </Tooltip>
               }
-              onChange={(e) => setIndex(e)}
               addonAfter={`${isIndexHardened ? "'" : ""}`}
-              defaultValue={index}
+              onChange={(e) => handleInputChange(e.target.value, setIndex)}
               value={index}
               style={{ width: "125px" }}
             />
