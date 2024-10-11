@@ -106,6 +106,7 @@ class SDKSession extends EventEmitter {
 
   setStoredClient(clientData: string): void {
     if (this._client) {
+      //@ts-expect-error - private method
       this._client.unpackAndApplyStateData(this.decodeClientData(clientData));
       this.emit("clientUpdated", this._client);
     }
@@ -113,6 +114,7 @@ class SDKSession extends EventEmitter {
 
   async setupClient(): Promise<void> {
     if (this._client) {
+      //@ts-expect-error - setup doesn't need all values if we're only loading a previously saved client
       await setup({
         getStoredClient: () => this.getStoredClient(),
         setStoredClient: (data: string) => this.setStoredClient(data),

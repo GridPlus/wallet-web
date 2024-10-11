@@ -66,7 +66,7 @@ const ExplorerPage = () => {
           ? (HARDENED_OFFSET + numValue).toString()
           : numValue.toString();
       })
-      .filter((x) => Boolean(x) && !isNaN(x))
+      .filter((x) => Boolean(x) && !isNaN(parseInt(x)))
       .join("/");
   };
 
