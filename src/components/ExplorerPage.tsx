@@ -24,15 +24,15 @@ const ExplorerPage = () => {
   const [isAddAddressesModalVisible, setIsAddAddressesModalVisible] =
     useState(false);
   // m / purpose' / coin_type' / account' / change / index
-  const [purpose, setPurpose] = useState<number | string>(44);
+  const [purpose, setPurpose] = useState<number | "X">(44);
   const [isPurposeHardened, setIsPurposeHardened] = useState(true);
-  const [coinType, setCoinType] = useState<number | string>(60);
+  const [coinType, setCoinType] = useState<number | "X">(60);
   const [isCoinTypeHardened, setIsCoinTypeHardened] = useState(true);
-  const [account, setAccount] = useState<number | string>(0);
+  const [account, setAccount] = useState<number | "X">(0);
   const [isAccountHardened, setIsAccountHardened] = useState(true);
-  const [change, setChange] = useState<number | string>(0);
+  const [change, setChange] = useState<number | "X">(0);
   const [isChangeHardened, setIsChangeHardened] = useState(false);
-  const [index, setIndex] = useState<number | string>(0);
+  const [index, setIndex] = useState<number | "X">(0);
   const [isIndexHardened, setIsIndexHardened] = useState(false);
   const [selectedDerivationType, setSelectedDerivationType] = useState(
     DERIVATION_TYPE.ETHEREUM
