@@ -1,4 +1,4 @@
-import { Client } from "gridplus-sdk";
+import { Client, setup } from "gridplus-sdk";
 import { SDKAddresses } from "../types/SDKAddresses";
 import {
   broadcastBtcTx,
@@ -13,9 +13,10 @@ import {
 import { default as StorageSession } from "../util/storageSession";
 import { Buffer } from "buffer/";
 import { default as ReactCrypto } from "gridplus-react-crypto";
+import { EventEmitter } from "events";
 
-class SDKSession {
-  client: Client;
+class SDKSession extends EventEmitter {
+  private _client: Client | null;
   crypto: any;
   name: any;
   storageSession: any;
@@ -30,7 +31,8 @@ class SDKSession {
   btcPrice: number;
 
   constructor(deviceID, stateUpdateHandler, name = null, opts: any = {}) {
-    this.client = null;
+    super();
+    this._client = null;
     this.crypto = null;
     this.name = name || constants.DEFAULT_APP_NAME; // app name
     // Make use of localstorage to persist wallet data
@@ -59,15 +61,75 @@ class SDKSession {
     this.getBtcWalletData();
   }
 
+  private encodeClientData(clientData: string): string {
+    return Buffer.from(clientData).toString("base64");
+  }
+
+  private decodeClientData(clientData: string): string {
+    return Buffer.from(clientData, "base64").toString();
+  }
+
+  // Getter for client
+  get client(): Client | null {
+    return this._client;
+  }
+
+  // Setter for client
+  set client(newClient: Client | null) {
+    this._client = newClient;
+    if (newClient) {
+      // Wrap all methods of the client to emit events
+      Object.getOwnPropertyNames(Object.getPrototypeOf(newClient)).forEach(
+        (method) => {
+          const prop = newClient[method as keyof Client];
+          if (typeof prop === "function" && method !== "constructor") {
+            const originalMethod = prop;
+            (newClient[method as keyof Client] as any) = (...args: any[]) => {
+              const result = originalMethod.apply(newClient, args);
+              this.emit("clientAction", { method, args });
+              return result;
+            };
+          }
+        }
+      );
+      this.setupClient();
+    }
+    this.emit("clientUpdated", newClient);
+  }
+
+  getStoredClient(): string | null {
+    if (this._client) {
+      return this.encodeClientData(this._client.getStateData());
+    }
+    return null;
+  }
+
+  setStoredClient(clientData: string): void {
+    if (this._client) {
+      //@ts-expect-error - private method
+      this._client.unpackAndApplyStateData(this.decodeClientData(clientData));
+      this.emit("clientUpdated", this._client);
+    }
+  }
+
+  async setupClient(): Promise<void> {
+    if (this._client) {
+      await setup({
+        getStoredClient: async () => this.getStoredClient(),
+        setStoredClient: async (data: string) => this.setStoredClient(data),
+      });
+    }
+  }
+
+  isConnected(): boolean {
+    return this._client !== null;
+  }
+
   disconnect() {
     this.client = null;
     this.saveBtcWalletData();
     this.storageSession = null;
     this.deviceID = null;
-  }
-
-  isConnected() {
-    return this.client !== null;
   }
 
   isPaired() {
@@ -281,7 +343,16 @@ class SDKSession {
   }
 
   connect(deviceID, pw, cb) {
-    return this._tryConnect(deviceID, pw, cb, true); // temporarily disable local connect
+    return this._tryConnect(deviceID, pw, (err, isPaired) => {
+      if (!err && isPaired) {
+        console.log("Connected and paired successfully");
+        this.setupClient();
+        if (this.stateUpdateHandler) {
+          this.stateUpdateHandler(this);
+        }
+      }
+      if (cb) cb(err, isPaired);
+    });
   }
 
   async refreshWallets(cb) {
