@@ -33,15 +33,18 @@ const XpubPage: React.FC<XpubPageProps> = ({ session }) => {
 
   const updateXpubAddress = async () => {
     if (!session) return;
-    
+
     setLoading(true);
     try {
-      const addresses = await session.getAddresses({ flag: 6 });
+      const addresses = await session.client?.getAddresses({
+        startPath: [44 + 0x80000000, 0 + 0x80000000, 0 + 0x80000000],
+        flag: 6,
+      });
       if (addresses && addresses.length > 0) {
         setXpub(addresses[0]);
       }
     } catch (err) {
-      console.error('Error fetching XPUB:', err);
+      console.error("Error fetching XPUB:", err);
     } finally {
       setLoading(false);
     }
@@ -49,7 +52,10 @@ const XpubPage: React.FC<XpubPageProps> = ({ session }) => {
 
   const copyXpub = () => {
     const copy = document.getElementById(SEARCH_ID);
-    if (copy instanceof HTMLInputElement || copy instanceof HTMLTextAreaElement) {
+    if (
+      copy instanceof HTMLInputElement ||
+      copy instanceof HTMLTextAreaElement
+    ) {
       copy.select();
       document.execCommand("copy");
     }
@@ -74,18 +80,17 @@ const XpubPage: React.FC<XpubPageProps> = ({ session }) => {
           </Button>
         </div>
       );
-    } else {
-      return (
-        <Search
-          type="text"
-          id={SEARCH_ID}
-          value={xpub}
-          enterButton={<CopyOutlined />}
-          onSearch={copyXpub}
-          style={{ margin: "30px 0 0 0", textAlign: "center" }}
-        />
-      );
     }
+    return (
+      <Search
+        type="text"
+        id={SEARCH_ID}
+        value={xpub}
+        enterButton={<CopyOutlined />}
+        onSearch={copyXpub}
+        style={{ margin: "30px 0 0 0", textAlign: "center" }}
+      />
+    );
   };
 
   const renderCard = () => {
@@ -123,14 +128,13 @@ const XpubPage: React.FC<XpubPageProps> = ({ session }) => {
           <Row justify="center">{renderXpubBox()}</Row>
         </div>
       );
-    } else {
-      return (
-        <div>
-          <p>No XPUB address found</p>
-          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
-        </div>
-      );
     }
+    return (
+      <div>
+        <p>No XPUB address found</p>
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+      </div>
+    );
   };
 
   const content = (
