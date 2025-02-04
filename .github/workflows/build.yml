@@ -14,18 +14,13 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 20.x
+          node-version: 16.x
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install NPM packages
+        run: npm ci
 
       - name: Build project
-        run: pnpm run build
+        run: npm run build
 
       - name: Run tests
-        run: pnpm run test
+        run: npm run test
