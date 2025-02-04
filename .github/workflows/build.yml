@@ -16,11 +16,16 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Install NPM packages
-        run: npm ci
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Build project
-        run: npm run build
+        run: pnpm run build
 
       - name: Run tests
-        run: npm run test
+        run: pnpm run test

@@ -18,14 +18,14 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: Install NPM packages
-        run: npm ci
+      - name: Install dependencies
+        run: pnpm install
 
       - name: Build project
-        run: npm run build
+        run: pnpm run build
 
       - name: Upload production-ready build files
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: production-files
           path: ./build
