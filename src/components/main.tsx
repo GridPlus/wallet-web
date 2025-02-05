@@ -35,7 +35,6 @@ import ExplorerPage from "./ExplorerPage";
 import type { MenuProps } from "antd/es/menu";
 import { sendErrorNotification } from "../util/sendErrorNotification";
 type MenuItem = Required<MenuProps>["items"][number];
-import XpubPage from "./btc-wallet/XpubPage";
 
 const { Content, Footer, Sider } = Layout;
 const LOGIN_PARAM = "loginCache";
@@ -566,11 +565,6 @@ class Main extends React.Component<any, MainState> {
               label: "Receive",
               icon: <ArrowDownOutlined />,
             },
-            {
-              key: PAGE_KEYS.XPUB,
-              label: "XPUB",
-              icon: <CreditCardOutlined />,
-            },
           ],
         });
       }
@@ -722,8 +716,6 @@ class Main extends React.Component<any, MainState> {
         return <AddressTagsPage />;
       case PAGE_KEYS.EXPLORER:
         return <ExplorerPage />;
-      case PAGE_KEYS.XPUB:
-        return <XpubPage session={this.context.session} />;
       case DEFAULT_PAGE:
         return <Landing goToPage={(key) => this.handleMenuChange({ key })} />;
       default:
